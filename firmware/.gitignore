@@ -1,5 +1,7 @@
 build/
+build_43c/
 sdkconfig
+sdkconfig.43c
 sdkconfig.old
 managed_components/
 dependencies.lock
