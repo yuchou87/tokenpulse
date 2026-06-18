@@ -2,6 +2,7 @@
 #include "esp_lvgl_port.h"
 #include "ui.h"
 #include "usb.h"
+#include "keepawake.h"
 
 void app_main(void)
 {
@@ -14,6 +15,9 @@ void app_main(void)
     ui_build(disp);
     lvgl_port_unlock();
 
-    /* USB CDC — starts listening for JSON snapshots from host */
+    /* USB CDC + HID composite — CDC receives JSON snapshots, HID sends F15 */
     usb_init();
+
+    /* Start 30-second F15 keep-awake timer */
+    keepawake_start();
 }
