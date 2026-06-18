@@ -1,8 +1,10 @@
 set(BOARD_SRCS)
 set(BOARD_REQUIRES)
 if(CONFIG_TP_BOARD_43C)
-    list(APPEND BOARD_SRCS "display_43c.c" "ui_43c.c")
-    list(APPEND BOARD_REQUIRES esp_driver_i2c espressif__esp_io_expander espressif__esp_io_expander_ch422g)
+    # CH422G vendored (C port layer only) — avoids C++ compile errors in managed component
+    list(APPEND BOARD_SRCS "display_43c.c" "ui_43c.c"
+                           "esp_io_expander.c" "esp_io_expander_ch422g.c")
+    list(APPEND BOARD_REQUIRES esp_driver_i2c)
 else()
     list(APPEND BOARD_SRCS "display_147b.c" "ui_147b.c")
     list(APPEND BOARD_REQUIRES esp_driver_spi)
