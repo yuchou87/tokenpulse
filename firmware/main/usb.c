@@ -175,8 +175,9 @@ void usb_hid_send_key(uint8_t keycode)
     uint8_t kc[6] = { keycode, 0, 0, 0, 0, 0 };
     tud_hid_keyboard_report(0, 0, kc);
     vTaskDelay(pdMS_TO_TICKS(20));
-    /* Key up */
-    tud_hid_keyboard_report(0, 0, NULL);
+    /* Key up — all-zero keycodes; NULL would be dereferenced by tud_hid_keyboard_report */
+    uint8_t release[6] = { 0 };
+    tud_hid_keyboard_report(0, 0, release);
 }
 
 void usb_init(void)
