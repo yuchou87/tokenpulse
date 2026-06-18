@@ -54,7 +54,7 @@ void ui_update(const ui_state_t *st)
     snprintf(buf, sizeof buf, "%d%%", st->five_pct);
     lv_label_set_text(lbl_5h_pct, st->stale ? "--%" : buf);
     lv_obj_set_style_text_color(lbl_5h_pct, lv_color_hex(c), 0);
-    lv_bar_set_value(bar5, st->five_pct, LV_ANIM_OFF);
+    lv_bar_set_value(bar5, st->stale ? 0 : st->five_pct, LV_ANIM_OFF);
 
     long s = st->five_reset_s;
     snprintf(buf, sizeof buf, "RESET %02ld:%02ld:%02ld", s / 3600, (s % 3600) / 60, s % 60);
@@ -62,7 +62,7 @@ void ui_update(const ui_state_t *st)
 
     snprintf(buf, sizeof buf, "7-DAY  %d%%", st->week_pct);
     lv_label_set_text(lbl_7d, st->stale ? "7-DAY  --%" : buf);
-    lv_bar_set_value(bar7, st->week_pct, LV_ANIM_OFF);
+    lv_bar_set_value(bar7, st->stale ? 0 : st->week_pct, LV_ANIM_OFF);
 
     (void)lbl_bottom; /* bottom label stays static in ui_update */
 }

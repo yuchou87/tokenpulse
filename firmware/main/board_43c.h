@@ -1,5 +1,6 @@
 #pragma once
 // ESP32-S3-Touch-LCD-4.3C — RGB565 800x480 + CH422G(I2C) backlight
+#include "esp_io_expander.h"   // IO_EXPANDER_PIN_NUM_2 used by CH422G_BL_PIN below
 #define I2C_SDA      8
 #define I2C_SCL      9
 #define I2C_HZ       400000

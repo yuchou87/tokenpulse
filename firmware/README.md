@@ -21,4 +21,4 @@ Once the app is running, TinyUSB takes over the USB port. A plain `idf.py flash`
 | ESP32-S3-Touch-LCD-4.3C | RGB 800×480 | `idf.py -B build_43c -DSDKCONFIG=sdkconfig.43c -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.43c.defaults" build` |
 
 也可 `idf.py menuconfig` → TokenPulse → Target board 切换。
-4.3C 烧录：`idf.py -B build_43c -DSDKCONFIG=sdkconfig.43c flash monitor`；app 占用 USB 后重烧同样按住 BOOT 点 RST。
+4.3C 烧录（首次需带上 defaults 生成正确的 sdkconfig.43c）：`idf.py -B build_43c -DSDKCONFIG=sdkconfig.43c -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.43c.defaults" flash monitor`；app 占用 USB 后重烧同样按住 BOOT 点 RST。
