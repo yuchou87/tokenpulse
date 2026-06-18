@@ -1,0 +1,49 @@
+# goreleaser config for the host CLI (Go module lives in ./host).
+# Docs: https://goreleaser.com  —  validate with `goreleaser check`.
+version: 2
+
+project_name: tokenpulse
+
+before:
+  hooks:
+    - sh -c "cd host && go mod tidy"
+
+builds:
+  - id: tokenpulse
+    dir: host          # the Go module is in host/, not the repo root
+    main: .
+    binary: tokenpulse
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - id: default
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^test:"
+
+release:
+  github:
+    owner: yuchou87
+    name: tokenpulse
+  draft: false
+  prerelease: auto
