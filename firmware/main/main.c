@@ -33,13 +33,13 @@ static void watchdog_task(void *arg)
 void app_main(void)
 {
     /* Display + LVGL */
-    esp_lcd_panel_handle_t panel = display_init();
-    lv_display_t *disp = display_lvgl_init(panel);
+    lv_display_t *disp = board_display_init();
 
     /* Build static UI widget tree (no live data yet) */
     lvgl_port_lock(0);
     ui_build(disp);
     lvgl_port_unlock();
+    board_display_backlight_on();
 
     /* USB CDC + HID composite — CDC receives JSON snapshots, HID sends F15 */
     usb_init();
