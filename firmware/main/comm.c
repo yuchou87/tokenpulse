@@ -6,7 +6,12 @@
 #include "esp_log.h"
 
 static const char *TAG = "comm";
-static int64_t g_last_rx_ms;
+/* uint32_t ms timestamp: 32-bit reads/writes are atomic on ESP32-S3 (Xtensa LX7),
+ * which avoids the torn-read hazard of int64_t across Core0 (TinyUSB RX cb) and
+ * Core1 (watchdog_task).  49-day rollover is harmless for a 60s stale window. */
+/* Init to 60001ms "in the past" (mod 2^32) so the board reads as stale on boot
+ * until the first snapshot arrives — no fake/placeholder values shown meanwhile. */
+static volatile uint32_t g_last_rx_ms = (uint32_t)(0u - 60001u);
 
 /**
  * Parse one newline-terminated JSON snapshot and update UI.
@@ -44,7 +49,7 @@ void comm_handle_line(const char *line, size_t len)
                 st.session_usd = j_usd->valuedouble;
             }
 
-            g_last_rx_ms = esp_timer_get_time() / 1000;
+            g_last_rx_ms = (uint32_t)(esp_timer_get_time() / 1000);
             ESP_LOGI(TAG, "rx: 5h=%d%% week=%d%% reset=%lds",
                      st.five_pct, st.week_pct, st.five_reset_s);
 
@@ -61,7 +66,7 @@ void comm_handle_line(const char *line, size_t len)
     cJSON_Delete(root);
 }
 
-int64_t comm_last_rx_ms(void)
+uint32_t comm_last_rx_ms(void)
 {
     return g_last_rx_ms;
 }
