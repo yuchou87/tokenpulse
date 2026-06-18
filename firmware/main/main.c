@@ -1,12 +1,13 @@
 #include "display.h"
-#include "board.h"
-#include "esp_lcd_panel_ops.h"
-#include "esp_heap_caps.h"
-#include <string.h>
+#include "esp_lvgl_port.h"
+
 void app_main(void) {
     esp_lcd_panel_handle_t panel = display_init();
-    size_t n = LCD_H_RES * LCD_V_RES;
-    uint16_t *fb = heap_caps_malloc(n * 2, MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM);
-    for (size_t i = 0; i < n; i++) fb[i] = 0xF800; // amber? 这是纯红,先验证刷得动
-    esp_lcd_panel_draw_bitmap(panel, 0, 0, LCD_H_RES, LCD_V_RES, fb);
+    lv_display_t *disp = display_lvgl_init(panel);
+
+    lvgl_port_lock(0);
+    lv_obj_t *l = lv_label_create(lv_display_get_screen_active(disp));
+    lv_label_set_text(l, "TOKENPULSE");
+    lv_obj_center(l);
+    lvgl_port_unlock();
 }
