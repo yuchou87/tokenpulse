@@ -12,6 +12,9 @@ func runInner(cmdline string, stdin []byte) ([]byte, error) {
 	cmd.Stdin = bytes.NewReader(stdin)
 	var out bytes.Buffer
 	cmd.Stdout = &out
+	// Inner stderr → our stderr: Claude Code only reads the status-line command's
+	// stdout, so surfacing inner errors here is safe and aids diagnosis.
+	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	return out.Bytes(), err
 }
