@@ -1,0 +1,39 @@
+name: firmware
+
+on:
+  push:
+    paths:
+      - "firmware/**"
+      - ".github/workflows/firmware.yml"
+  pull_request:
+    paths:
+      - "firmware/**"
+      - ".github/workflows/firmware.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - board: 147b
+            command: idf.py build
+          - board: 43c
+            command: >-
+              idf.py -B build_43c -DSDKCONFIG=sdkconfig.43c
+              -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.43c.defaults" build
+    name: build-${{ matrix.board }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build firmware (${{ matrix.board }})
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          # Match the locally-used toolchain; if this Docker tag is unavailable,
+          # switch to "release-v6.0".
+          esp_idf_version: v6.0.1
+          target: esp32s3
+          path: firmware
+          command: ${{ matrix.command }}
