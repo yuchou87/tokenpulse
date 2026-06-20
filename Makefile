@@ -28,8 +28,8 @@ host: ## Build host binary -> host/tokenpulse
 host-test: ## Run host tests
 	cd host && go test ./...
 
-host-install: ## go install the host tool onto $GOBIN/$GOPATH/bin
-	cd host && go install .
+host-install: ## Install host binary -> $(go env GOPATH)/bin/tokenpulse
+	cd host && go build -o "$$(go env GOPATH)/bin/tokenpulse" .
 
 ## ---------------- firmware (ESP-IDF) ----------------
 
