@@ -1,10 +1,8 @@
 set(BOARD_SRCS)
 set(BOARD_REQUIRES)
 if(CONFIG_TP_BOARD_43C)
-    # CH422G vendored (C port layer only) — avoids C++ compile errors in managed component
-    list(APPEND BOARD_SRCS "display_43c.c" "ui_43c.c"
-                           "esp_io_expander.c" "esp_io_expander_ch422g.c")
-    # legacy i2c (i2c_driver_install) used by vendored CH422G port lives in `driver` (already required)
+    list(APPEND BOARD_SRCS "display_43c.c" "ui_43c.c")
+    # legacy i2c (i2c_driver_install) for the IO expander lives in `driver` (already required)
 else()
     list(APPEND BOARD_SRCS "display_147b.c" "ui_147b.c")
     list(APPEND BOARD_REQUIRES esp_driver_spi)

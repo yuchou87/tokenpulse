@@ -3,5 +3,3 @@ dependencies:
   espressif/esp_lvgl_port: "^2"
   espressif/esp_tinyusb: "^1"
   espressif/cjson: "^1.7.18"
-  # esp32_io_expander vendored into main/ (C port only) to avoid C++ compilation
-  # errors in the managed component under IDF v6.0.1 strict mode.
