@@ -1,26 +1,45 @@
 /*
  * display_43c.c — ESP32-S3-Touch-LCD-4.3C display driver
  *
- * API corrections vs plan:
- * - Uses old I2C driver (i2c_param_config/i2c_driver_install) because
- *   espressif/esp32_io_expander v1.x expects i2c_port_t, not i2c_master_bus_handle_t.
- * - esp_lcd_rgb_panel_config_t has no bits_per_pixel in IDF v6.0.1;
- *   uses in_color_format/out_color_format = LCD_COLOR_FMT_RGB565 instead.
- * - Component is espressif/esp32_io_expander (not esp_io_expander_ch422g).
+ * IO expander note:
+ * This board's "CH422G" footprint is actually a custom MCU-based IO expander
+ * (schematic U10 exposes SWDIO + PWM + ADC pins — a real CH422G has none of
+ * these). It speaks a simple register-pointer protocol at I2C 0x24:
+ *   reg 0x02 = direction mask (1=output per bit), reg 0x03 = output latch byte.
+ * The Espressif esp_io_expander_ch422g driver uses the real-CH422G multi-address
+ * protocol (0x23/0x38/...) and NACKs on this board -> abort. So we talk to the
+ * expander directly (verified working per Waveshare's reference io_extension).
+ *
+ * Other IDF v6.0.1 notes:
+ * - esp_lcd_rgb_panel_config_t has no bits_per_pixel; use in/out_color_format.
  */
 #include "display.h"
 #include "board.h"
 #include "driver/i2c.h"
-#include "esp_io_expander_ch422g.h"
 #include "esp_lcd_panel_rgb.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lvgl_port.h"
 
-static esp_io_expander_handle_t g_exp = NULL;
+#define IOEXP_ADDR       0x24   // I2C slave of the IO expander
+#define IOEXP_REG_MODE   0x02   // 8-bit direction mask, 1 = output
+#define IOEXP_REG_OUTPUT 0x03   // 8-bit output latch (write-only -> keep a shadow)
+#define IOEXP_BL_BIT     2      // EXIO2 = LCD backlight (high = on)
+
+// Shadow of the output latch. 0xF7 is Waveshare's proven default (PA/bit3 low,
+// rest high); we additionally clear the backlight bit so the screen stays dark
+// until the first frame is rendered.
+static uint8_t s_ioexp_out = 0xF7 & ~(1 << IOEXP_BL_BIT);
+
+static esp_err_t ioexp_write(uint8_t reg, uint8_t val)
+{
+    uint8_t buf[2] = { reg, val };
+    return i2c_master_write_to_device(I2C_NUM_0, IOEXP_ADDR, buf, sizeof buf,
+                                      pdMS_TO_TICKS(100));
+}
 
 lv_display_t *board_display_init(void)
 {
-    // 1. I2C init (legacy driver, required by esp32_io_expander v1.x)
+    // 1. I2C (legacy driver)
     i2c_config_t i2c_cfg = {
         .mode             = I2C_MODE_MASTER,
         .sda_io_num       = I2C_SDA,
@@ -32,13 +51,11 @@ lv_display_t *board_display_init(void)
     ESP_ERROR_CHECK(i2c_param_config(I2C_NUM_0, &i2c_cfg));
     ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0));
 
-    // 2. CH422G IO expander: EXIO2 = backlight, keep off initially
-    ESP_ERROR_CHECK(esp_io_expander_new_i2c_ch422g(
-        I2C_NUM_0, ESP_IO_EXPANDER_I2C_CH422G_ADDRESS, &g_exp));
-    ESP_ERROR_CHECK(esp_io_expander_set_dir(g_exp, CH422G_BL_PIN, IO_EXPANDER_OUTPUT));
-    ESP_ERROR_CHECK(esp_io_expander_set_level(g_exp, CH422G_BL_PIN, 0));
+    // 2. IO expander: all pins output, backlight off (until first frame)
+    ESP_ERROR_CHECK(ioexp_write(IOEXP_REG_MODE, 0xFF));
+    ESP_ERROR_CHECK(ioexp_write(IOEXP_REG_OUTPUT, s_ioexp_out));
 
-    // 3. RGB panel (IDF v6.0.1: use in_color_format/out_color_format, no bits_per_pixel)
+    // 3. RGB panel (IDF v6.0.1: in/out_color_format, no bits_per_pixel)
     esp_lcd_rgb_panel_config_t rgb = {
         .clk_src           = LCD_CLK_SRC_DEFAULT,
         .timings = {
@@ -91,7 +108,6 @@ lv_display_t *board_display_init(void)
 
 void board_display_backlight_on(void)
 {
-    if (g_exp) {
-        esp_io_expander_set_level(g_exp, CH422G_BL_PIN, 1);
-    }
+    s_ioexp_out |= (1 << IOEXP_BL_BIT);
+    ioexp_write(IOEXP_REG_OUTPUT, s_ioexp_out);
 }
