@@ -98,7 +98,11 @@ lv_display_t *board_display_init(void)
         .hres          = LCD_H_RES,
         .vres          = LCD_V_RES,
         .color_format  = LV_COLOR_FORMAT_RGB565,
-        .flags         = { .buff_spiram = true },
+        // full_refresh: redraw the whole screen every frame so BOTH RGB
+        // framebuffers stay fully painted. Without it, a mostly-static UI only
+        // paints one buffer (no dirty regions) and the panel flashes white when
+        // it swaps to the never-drawn second framebuffer.
+        .flags         = { .full_refresh = true },
     };
     const lvgl_port_display_rgb_cfg_t rgbc = {
         .flags = { .bb_mode = true, .avoid_tearing = true },
