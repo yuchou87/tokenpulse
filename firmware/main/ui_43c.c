@@ -22,6 +22,17 @@ static lv_obj_t *mklbl(lv_obj_t *p, const char *txt, int x, int y,
     return l;
 }
 
+// Thin horizontal rule (cleaner + spans exactly, vs a row of '=' characters).
+static void mksep(lv_obj_t *p, int x, int y, int w, uint32_t color)
+{
+    lv_obj_t *o = lv_obj_create(p);
+    lv_obj_remove_style_all(o);
+    lv_obj_set_size(o, w, 2);
+    lv_obj_set_pos(o, x, y);
+    lv_obj_set_style_bg_color(o, lv_color_hex(color), 0);
+    lv_obj_set_style_bg_opa(o, LV_OPA_COVER, 0);
+}
+
 static lv_obj_t *mkbar(lv_obj_t *p, int x, int y, int w, int h)
 {
     lv_obj_t *b = lv_bar_create(p);
@@ -38,29 +49,26 @@ void ui_build(lv_display_t *disp)
     lv_obj_t *scr = lv_display_get_screen_active(disp);
     lv_obj_set_style_bg_color(scr, lv_color_hex(BG), 0);
 
-    // 顶栏
-    mklbl(scr, "TOKENPULSE",  24, 18, &lv_font_montserrat_28, AMBER);
-    mklbl(scr, "CLAUDE CODE",  24, 56, &lv_font_montserrat_14, DIM);
-    lbl_state = mklbl(scr, "* ONLINE", 640, 24, &lv_font_montserrat_14, AMBER);
-    mklbl(scr, "================================================", 24, 78,
-          &lv_font_montserrat_14, DIM);
+    // Header
+    mklbl(scr, "TOKENPULSE",  32, 18, &lv_font_montserrat_28, AMBER);
+    mklbl(scr, "CLAUDE CODE", 32, 56, &lv_font_montserrat_14, DIM);
+    lbl_state = mklbl(scr, "* ONLINE", 648, 26, &lv_font_montserrat_14, AMBER);
+    mksep(scr, 32, 88, 736, DIM);
 
-    // 左面板: 5H WINDOW
-    mklbl(scr, "5H WINDOW", 40, 110, &lv_font_montserrat_28, DIM);
-    lbl_5h_pct = mklbl(scr, "--%", 40, 150, &lv_font_montserrat_48, AMBER);
-    bar5 = mkbar(scr, 40, 240, 340, 22);
-    lbl_5h_reset = mklbl(scr, "RESET --:--:--", 40, 280, &lv_font_montserrat_28, DIM);
+    // Left column — 5H WINDOW (primary metric)
+    mklbl(scr, "5H WINDOW", 40, 120, &lv_font_montserrat_28, DIM);
+    lbl_5h_pct = mklbl(scr, "--%", 40, 158, &lv_font_montserrat_48, AMBER);
+    bar5 = mkbar(scr, 40, 252, 360, 30);
+    lbl_5h_reset = mklbl(scr, "RESET --:--:--", 40, 300, &lv_font_montserrat_28, DIM);
 
-    // 右面板: 7-DAY
-    mklbl(scr, "7-DAY", 440, 110, &lv_font_montserrat_28, DIM);
-    lbl_7d_pct = mklbl(scr, "--%", 440, 150, &lv_font_montserrat_48, AMBER);
-    bar7 = mkbar(scr, 440, 240, 340, 22);
+    // Right column — 7-DAY (secondary, smaller)
+    mklbl(scr, "7-DAY", 440, 120, &lv_font_montserrat_28, DIM);
+    lbl_7d_pct = mklbl(scr, "--%", 440, 160, &lv_font_montserrat_28, AMBER);
+    bar7 = mkbar(scr, 440, 210, 320, 18);
 
-    // 底栏: SESSION 花费 + 分隔
-    mklbl(scr, "------------------------------------------------", 24, 380,
-          &lv_font_montserrat_14, DIM);
-    lbl_session = mklbl(scr, "SESSION $--.--", 40, 410, &lv_font_montserrat_28, AMBER);
-    mklbl(scr, "* RUNNING", 640, 420, &lv_font_montserrat_14, AMBER);
+    // Footer — session cost
+    mksep(scr, 32, 372, 736, DIM);
+    lbl_session = mklbl(scr, "SESSION $--.--", 40, 398, &lv_font_montserrat_28, AMBER);
 }
 
 void ui_update(const ui_state_t *st)
@@ -85,7 +93,7 @@ void ui_update(const ui_state_t *st)
     lv_obj_set_style_text_color(lbl_7d_pct, lv_color_hex(c), 0);
     lv_bar_set_value(bar7, st->stale ? 0 : st->week_pct, LV_ANIM_OFF);
 
-    // SESSION 花费
+    // Session cost
     if (st->stale) {
         lv_label_set_text(lbl_session, "SESSION $--.--");
     } else {
@@ -93,7 +101,7 @@ void ui_update(const ui_state_t *st)
         lv_label_set_text(lbl_session, buf);
     }
 
-    // 状态行: stale 时灰显
+    // Status (single indicator; greyed when stale)
     lv_obj_set_style_text_color(lbl_state, lv_color_hex(c), 0);
     lv_label_set_text(lbl_state, st->stale ? "* STALE" : "* ONLINE");
 }
