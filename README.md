@@ -33,7 +33,18 @@ go build -o tokenpulse .
 install tokenpulse /usr/local/bin/
 ```
 
-Register it as the Claude Code status-line command in `~/.claude/settings.json`:
+### Register the status line
+
+Easiest — let the tool do it (detects the serial port, wraps your existing
+status line as passthrough, backs up `settings.json` first):
+
+```bash
+tokenpulse setup          # prompts before writing; --yes to skip, --serial to override
+```
+
+`setup` is idempotent (re-running it when already configured does nothing).
+
+Or register it manually in `~/.claude/settings.json`:
 
 ```json
 { "statusLine": { "type": "command", "command": "tokenpulse statusline" } }
@@ -47,7 +58,7 @@ point it at whatever you ran before via `TOKENPULSE_INNER`.
 | Variable | Default | Purpose |
 |---|---|---|
 | `TOKENPULSE_INNER` | `bash ~/.claude/statusline-command.sh` | Your existing status-line command; its stdout is passed through verbatim. |
-| `TOKENPULSE_SERIAL` | autodetect `/dev/cu.usbmodem*` | Serial device of the board. |
+| `TOKENPULSE_SERIAL` | autodetect (prefers the TokenPulse board, else first `/dev/cu.usbmodem*`) | Serial device of the board. |
 | `TOKENPULSE_BAUD` | `115200` | Baud (nominal; irrelevant for USB-CDC). |
 
 The tool is fail-safe by design: if the board is unplugged, the serial write

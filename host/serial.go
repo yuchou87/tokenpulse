@@ -2,14 +2,26 @@ package main
 
 import (
 	"path/filepath"
+	"strings"
 
 	"go.bug.st/serial"
 )
+
+// tokenPulseSerialHint matches the macOS device node of our board, which is
+// named cu.usbmodem<serial> where the firmware's USB serial string is "TP_…".
+const tokenPulseSerialHint = "TP_"
 
 func autodetectSerial(glob func(string) ([]string, error)) string {
 	matches, err := glob("/dev/cu.usbmodem*")
 	if err != nil || len(matches) == 0 {
 		return ""
+	}
+	// Prefer the TokenPulse board if present, so a second usbmodem device
+	// (another board, or the ROM USB-JTAG port in download mode) isn't grabbed.
+	for _, m := range matches {
+		if strings.Contains(strings.ToUpper(m), tokenPulseSerialHint) {
+			return m
+		}
 	}
 	return matches[0]
 }

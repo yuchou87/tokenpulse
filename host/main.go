@@ -28,6 +28,9 @@ func main() {
 		fmt.Println("tokenpulse " + version)
 		os.Exit(0)
 	}
+	if len(os.Args) >= 2 && os.Args[1] == "setup" {
+		os.Exit(runSetup(os.Args[2:], os.Stdin))
+	}
 	if len(os.Args) < 2 || os.Args[1] != "statusline" {
 		// 未知子命令:静默退出,绝不污染 stdout
 		os.Exit(0)
