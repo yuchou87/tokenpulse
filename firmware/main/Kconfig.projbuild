@@ -1,0 +1,13 @@
+menu "TokenPulse"
+    choice TP_BOARD
+        prompt "Target board"
+        default TP_BOARD_147B
+        help
+            选择目标硬件。两块板共用 comm/usb/keepawake，只有显示与 UI 不同。
+
+        config TP_BOARD_147B
+            bool "ESP32-S3-LCD-1.47B (ST7789 SPI 172x320)"
+        config TP_BOARD_43C
+            bool "ESP32-S3-Touch-LCD-4.3C (RGB 800x480)"
+    endchoice
+endmenu

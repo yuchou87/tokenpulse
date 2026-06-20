@@ -1,0 +1,11 @@
+# Board selection
+CONFIG_TP_BOARD_43C=y
+# RGB frame buffer requires PSRAM; fetch instructions/rodata from PSRAM at 80MHz
+CONFIG_SPIRAM_FETCH_INSTRUCTIONS=y
+CONFIG_SPIRAM_RODATA=y
+CONFIG_SPIRAM_SPEED_80M=y
+# RGB ISR placed in IRAM for real-time timing
+CONFIG_LCD_RGB_ISR_IRAM_SAFE=y
+# 大屏需要更大的内置字体
+CONFIG_LV_FONT_MONTSERRAT_28=y
+CONFIG_LV_FONT_MONTSERRAT_48=y

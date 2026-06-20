@@ -1,0 +1,36 @@
+name: host
+
+on:
+  push:
+    paths:
+      - "host/**"
+      - ".github/workflows/host.yml"
+  pull_request:
+    paths:
+      - "host/**"
+      - ".github/workflows/host.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: host/go.mod
+          cache-dependency-path: host/go.sum
+
+      - name: Vet
+        working-directory: host
+        run: go vet ./...
+
+      - name: Test
+        working-directory: host
+        run: go test ./...
+
+      - name: Build
+        working-directory: host
+        run: go build -o tokenpulse .

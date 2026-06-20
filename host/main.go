@@ -2,10 +2,14 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
 	"time"
 )
+
+// version is injected at build time via -ldflags "-X main.version=...".
+var version = "dev"
 
 func runInner(cmdline string, stdin []byte) ([]byte, error) {
 	cmd := exec.Command("bash", "-c", cmdline)
@@ -20,6 +24,10 @@ func runInner(cmdline string, stdin []byte) ([]byte, error) {
 }
 
 func main() {
+	if len(os.Args) >= 2 && os.Args[1] == "version" {
+		fmt.Println("tokenpulse " + version)
+		os.Exit(0)
+	}
 	if len(os.Args) < 2 || os.Args[1] != "statusline" {
 		// 未知子命令:静默退出,绝不污染 stdout
 		os.Exit(0)
