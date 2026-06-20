@@ -1,0 +1,15 @@
+{
+  "version": 4,
+  "configurations": [
+    {
+      "name": "ESP-IDF",
+      "//": "IntelliSense reads IDF-generated compile_commands.json. Both build dirs are listed so files compiled only in one board's build (e.g. display_43c.c lives in build_43c) still resolve. Run `make fw-147b` and `make fw-43c` once so both files exist.",
+      "compileCommands": [
+        "${workspaceFolder}/firmware/build/compile_commands.json",
+        "${workspaceFolder}/firmware/build_43c/compile_commands.json"
+      ],
+      "cStandard": "c17",
+      "cppStandard": "c++17"
+    }
+  ]
+}
