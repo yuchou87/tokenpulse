@@ -14,7 +14,8 @@ func Run(stdin io.Reader, stdout io.Writer, sink SnapshotSink, inner InnerCmd, n
 		raw = nil
 	}
 	// side effect:推板子(失败忽略,绝不影响 stdout)
-	if in, perr := ParseInput(raw); perr == nil {
+	// 只在有真实 rate_limits 时推:否则会把板子覆盖成全 0(板子保持上次真实值)。
+	if in, perr := ParseInput(raw); perr == nil && in.HasRateLimits() {
 		if line, lerr := BuildSnapshot(in, nowUnix).Line(); lerr == nil {
 			_ = sink.Send(line)
 		}

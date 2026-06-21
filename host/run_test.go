@@ -65,3 +65,36 @@ func TestRun_BadJSONStillPassesThrough(t *testing.T) {
 		t.Errorf("stdout = %q, passthrough must still happen", out.String())
 	}
 }
+
+func TestRun_NoRateLimits_DoesNotPush(t *testing.T) {
+	// status-line payload without rate_limits (all-zero) must NOT overwrite the
+	// board with zeros — skip the push, board keeps its last real value.
+	sink := &fakeSink{}
+	var out bytes.Buffer
+	inner := func(stdin []byte) ([]byte, error) { return []byte("OK"), nil }
+	noRL := `{"model":{"display_name":"Opus 4.8"},"cost":{"total_cost_usd":0}}`
+	if err := Run(bytes.NewReader([]byte(noRL)), &out, sink, inner, 1000); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if len(sink.lines) != 0 {
+		t.Fatalf("pushed %d lines, want 0 (no rate_limits)", len(sink.lines))
+	}
+	if out.String() != "OK" {
+		t.Errorf("stdout = %q, want passthrough", out.String())
+	}
+}
+
+func TestHasRateLimits(t *testing.T) {
+	none, _ := ParseInput([]byte(`{"cost":{"total_cost_usd":1}}`))
+	if none.HasRateLimits() {
+		t.Error("empty rate_limits should be false")
+	}
+	zeroReset, _ := ParseInput([]byte(`{"rate_limits":{"five_hour":{"used_percentage":0,"resets_at":0}}}`))
+	if zeroReset.HasRateLimits() {
+		t.Error("resets_at=0 should be false")
+	}
+	real, _ := ParseInput([]byte(`{"rate_limits":{"five_hour":{"used_percentage":0,"resets_at":5000}}}`))
+	if !real.HasRateLimits() {
+		t.Error("real window (0% but resets_at>0) should be true")
+	}
+}
