@@ -4,12 +4,27 @@ ESP-IDF v6.0.1 project for ESP32-S3-1.47B (172×320 ST7789 + USB CDC/HID).
 
 ## Re-flashing after TinyUSB starts
 
-Once the app is running, TinyUSB takes over the USB port. A plain `idf.py flash` will fail to connect. To re-enter download mode:
+Once the app is running, TinyUSB takes over the native USB port (it enumerates as
+`/dev/cu.usbmodemTP_00011`), so a plain `idf.py flash` can't auto-reset into the
+ROM bootloader. Enter download mode manually:
 
-1. Hold the **BOOT** button.
-2. Tap **RST**.
-3. Release **BOOT**.
-4. Run `idf.py flash` — esptool will find the device in download mode.
+1. **Hold BOOT**, **tap RST**, **release BOOT**.
+2. The board re-enumerates as the ROM USB-Serial/JTAG port (`/dev/cu.usbmodem<N>`,
+   e.g. `usbmodem1101`) and waits for download.
+3. Flash it, pointing at that port:
+   `idf.py -p /dev/cu.usbmodem<N> flash`
+   (for 4.3C add `-B build_43c`).
+
+### Gotchas (learned during bring-up)
+
+- **After flashing, the board may stay in download mode.** esptool's "Hard
+  resetting via RTS" sometimes lands back in download (`boot:0x0 DOWNLOAD`) on
+  these native-USB boards. Just **tap RST once (no BOOT)** to boot the app.
+- **Don't open the serial port to "check" it.** Opening `/dev/cu.*` (cat,
+  screen, `idf.py monitor`) asserts DTR and resets the board. Use
+  `ioreg -p IOUSB -l | grep "USB Product Name"` to see whether it enumerated as
+  `TokenPulse` (app running) vs `USB JTAG_serial debug unit` (ROM) without
+  resetting it.
 
 ## 目标板选择
 
