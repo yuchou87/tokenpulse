@@ -35,6 +35,15 @@ type Snapshot struct {
 	Providers []Provider `json:"providers"`
 }
 
+// HasRateLimits reports whether the input carries real rate-limit data.
+// Claude Code sometimes emits a status-line payload with no rate_limits (e.g.
+// before it has fetched them), which unmarshals to all-zero fields. A real
+// window always has a reset timestamp, so resets_at>0 distinguishes real data
+// (including a legitimate 0% at the start of a window) from "no data yet".
+func (in StatusLineInput) HasRateLimits() bool {
+	return in.RateLimits.FiveHour.ResetsAt > 0 || in.RateLimits.SevenDay.ResetsAt > 0
+}
+
 func ParseInput(b []byte) (StatusLineInput, error) {
 	var in StatusLineInput
 	err := json.Unmarshal(b, &in)
