@@ -38,10 +38,20 @@ firmware/    ESP-IDF v6.0.1 + LVGL project for both boards
 
 ### 1. Host tool
 
+Install with Homebrew:
+
+```bash
+brew install yuchou87/tap/tokenpulse
+```
+
+Or build from source:
+
 ```bash
 cd host && go build -o tokenpulse .
 install tokenpulse /usr/local/bin/        # or: go install (then it's $GOPATH/bin/tokenpulse)
 ```
+
+Or grab a prebuilt binary from [releases](https://github.com/yuchou87/tokenpulse/releases).
 
 Register it as your Claude Code status line — the tool does it for you (detects
 the serial port, wraps your existing status line as passthrough, backs up
